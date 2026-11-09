@@ -961,3 +961,4 @@
 {"timestamp":"2026-11-09T18:07:03.512118Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/6_parallel_task.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
 {"timestamp":"2026-11-09T18:07:34.180287Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/6_parallel_task.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
 {"timestamp":"2026-11-09T18:08:04.875078Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/6_parallel_task.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-11-09T18:08:35.607951Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/6_parallel_task.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}

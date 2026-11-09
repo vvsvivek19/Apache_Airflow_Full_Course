@@ -1053,3 +1053,4 @@
 {"timestamp":"2026-11-09T18:07:05.591622Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/4_XOMs_auto.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
 {"timestamp":"2026-11-09T18:07:36.242325Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/4_XOMs_auto.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
 {"timestamp":"2026-11-09T18:08:06.955859Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/4_XOMs_auto.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-11-09T18:08:37.689024Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/4_XOMs_auto.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
