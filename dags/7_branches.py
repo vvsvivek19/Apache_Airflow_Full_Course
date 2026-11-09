@@ -1,4 +1,5 @@
-from airflow.sdk import dag, task 
+from airflow.sdk import dag, task
+from more_itertools import first 
 
 
 @dag(
@@ -8,75 +9,76 @@ def branch_dag():
 
     @task.python
     def extract_task(**kwargs):
-        print("Extracting Data.....")
-        ti = kwargs['ti']
-        extracted_data_dict = {"api_extracted_data":[1,2,3],
-                               "db_extracted_data":[4,5,6],
-                               "s3_extracted_data":[7,8,9],
-                               "weekend_flag":"false"}
-        ti.xcom_push(key='return_value',value=extracted_data_dict)
+        print("Extracting the data, this is the first task")
+        ti = kwargs["ti"]
+        extracted_data = {"api_extracted_data": [1, 2, 3, 4, 5],
+                          "db_extracted_data": [6, 7, 8, 9, 10],
+                          "s3_extracted_data": [11, 12, 13, 14, 15],
+                          "weekend_flag": False}
+        ti.xcom_push(key="return_value", value=extracted_data)
 
     @task.python
     def transform_task_api(**kwargs):
-        ti = kwargs['ti']
-        api_extracted_data = ti.xcom_pull(task_ids='extract_task')['api_extracted_data']
-        print(f"Transforming API data: {api_extracted_data}.....")
-        transformed_api_data = [i*10 for i in api_extracted_data]
-        ti.xcom_push(key='return_value',value=transformed_api_data)
+        print("Transforming the API data, this is the second task")
+        ti = kwargs["ti"]
+        extracted_data = ti.xcom_pull(key="return_value", task_ids="extract_task")
+        api_data = extracted_data["api_extracted_data"]
+        transformed_api_data = [x * 2 for x in api_data]
+        ti.xcom_push(key="return_value", value=transformed_api_data)
     
     @task.python
     def transform_task_db(**kwargs):
-        ti = kwargs['ti']
-        db_extracted_data = ti.xcom_pull(task_ids='extract_task')['db_extracted_data']
-        print(f"Transforming DB data: {db_extracted_data}.....")
-        transformed_db_data = [i*100 for i in db_extracted_data]
-        ti.xcom_push(key='return_value',value=transformed_db_data)
+        print("Transforming the DB data, this is the third task")
+        ti = kwargs["ti"]
+        extracted_data = ti.xcom_pull(key="return_value", task_ids="extract_task")
+        db_data = extracted_data["db_extracted_data"]
+        transformed_db_data = [x * 2 for x in db_data]
+        ti.xcom_push(key="return_value", value=transformed_db_data)
 
     @task.python
     def transform_task_s3(**kwargs):
-        ti = kwargs['ti']
-        s3_extracted_data = ti.xcom_pull(task_ids='extract_task')['s3_extracted_data']
-        print(f"Transforming S3 data: {s3_extracted_data}.....")
-        transformed_s3_data = [i*1000 for i in s3_extracted_data]
-        ti.xcom_push(key='return_value',value=transformed_s3_data)
-    
-
-    # Creating the Decider Node
-    @task.branch 
-    def decider_task(**kwargs):
-        ti = kwargs['ti']
-        weekend_flag = ti.xcom_pull(task_ids='extract_task')['weekend_flag']
-        if weekend_flag == "true":
-            return 'no_load_task'
-        else:
-            return 'load_task'
-
+        print("Transforming the S3 data, this is the fourth task")
+        ti = kwargs["ti"]
+        extracted_data = ti.xcom_pull(key="return_value", task_ids="extract_task")
+        s3_data = extracted_data["s3_extracted_data"]
+        transformed_s3_data = [x * 2 for x in s3_data]
+        ti.xcom_push(key="return_value", value=transformed_s3_data)
 
     @task.bash
     def load_task(**kwargs):
-        print("Loading data to destination.....")
-        api_data = kwargs['ti'].xcom_pull(task_ids='transform_task_api')
-        db_data = kwargs['ti'].xcom_pull(task_ids='transform_task_db')
-        s3_data = kwargs['ti'].xcom_pull(task_ids='transform_task_s3')
+        print("Loading data to destination, this is the fifth task")
+        api_data = kwargs["ti"].xcom_pull(key="return_value", task_ids="transform_task_api")
+        db_data = kwargs["ti"].xcom_pull(key="return_value", task_ids="transform_task_db")
+        s3_data = kwargs["ti"].xcom_pull(key="return_value", task_ids="transform_task_s3")
+        return f"echo 'Loaded data: API: {api_data}, DB: {db_data}, S3: {s3_data}'"
 
-        return f"echo 'Loaded Data: {api_data}, {db_data}, {s3_data}'"
-
-    @task.bash 
+    @task.bash
     def no_load_task(**kwargs):
-        print("No loading on weekends.....")
-        return "echo 'No Load Task Executed'"
+        print("This is a branch task that does not load data")
+        return "echo 'No data to load since it is weekend, this is a branch task'"
 
+
+    # creating decider based on weekend_flag
+    @task.branch
+    def decider_task(**kwargs):
+        ti = kwargs["ti"]
+        extracted_data = ti.xcom_pull(key="return_value", task_ids="extract_task")
+        weekend_flag = extracted_data["weekend_flag"]
+        if weekend_flag:
+            return "no_load_task"
+        else:
+            return "load_task"
     
     # Defining task dependencies
     extract = extract_task()
     transform_api = transform_task_api()
     transform_db = transform_task_db()
     transform_s3 = transform_task_s3()
+    decider = decider_task()
     load = load_task()
     no_load = no_load_task()
-
-    extract >> [transform_api, transform_db, transform_s3] >> decider_task() >> [load, no_load]
-
+    
+    extract >> [transform_api, transform_db, transform_s3] >> decider >> [load, no_load]
 
 # Instantiating the DAG
 branch_dag()

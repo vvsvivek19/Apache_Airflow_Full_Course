@@ -19,10 +19,10 @@ def versioned_dag():
         print("This is the third task. DAG complete!")
     
 
+
     @task.python
     def version_task():
         print("This is the version task. DAG version 2.0!")
-
 
     # Defining task dependencies
     first = first_task()
